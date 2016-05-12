@@ -1,5 +1,6 @@
 package com.boopgame.helpers;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.boopgame.gamescreen.GameLogic;
@@ -62,16 +63,24 @@ public class GameInputHandler implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        gameLogic.setTouchDown(true);
+        gameLogic.setTouchPosition(screenX, screenY);
+        Gdx.app.log("BoopGame", "down "+screenX+" "+screenY);
         return false;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        gameLogic.setTouchDown(false);
+        gameLogic.setTouchPosition(screenX, screenY);
+        Gdx.app.log("BoopGame", "up "+screenX+" "+screenY);
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+        gameLogic.setTouchPosition(screenX, screenY);
+        Gdx.app.log("BoopGame", "drag "+screenX+" "+screenY);
         return false;
     }
 

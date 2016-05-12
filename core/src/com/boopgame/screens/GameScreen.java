@@ -22,7 +22,7 @@ public class GameScreen implements Screen {
         gameWidth = 180;
         gameHeight = screenHeight / (screenWidth / gameWidth);
         gameRenderer = new GameRenderer(gameWidth, gameHeight);
-        gameLogic = new GameLogic();
+        gameLogic = new GameLogic((int)screenWidth, (int)screenHeight);
     }
 
     @Override
@@ -42,6 +42,7 @@ public class GameScreen implements Screen {
     public void resize(int width, int height) {
         float newGameHeight = height / (width / gameWidth);
         gameRenderer.resize(gameWidth, newGameHeight);
+        gameLogic.resize(width, height);
     }
 
     @Override

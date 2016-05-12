@@ -49,4 +49,8 @@ public class PlayerBoop {
     public void moveRight() {
         playerPosition.set(playerPosition.x + playerSpeed, playerPosition.y);
     }
+
+    public void movePlayerWithTouch(float speedX, float speedY) {
+        playerPosition.set(playerPosition.x + speedX, playerPosition.y + speedY);
+    }
 }
