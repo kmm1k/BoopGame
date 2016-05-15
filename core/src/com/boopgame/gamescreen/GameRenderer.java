@@ -11,16 +11,14 @@ import com.boopgame.gameobjects.PlayerBoop;
  */
 public class GameRenderer {
     private OrthographicCamera cam;
-    private boolean ORTHO_FLIPPED = false;
     private ShapeRenderer shapeRenderer;
     private float gameWidth;
     private float gameHeight;
 
-    public GameRenderer(float gameWidth, float gameHeight) {
+    public GameRenderer(float gameWidth, float gameHeight, OrthographicCamera cam) {
         //Gdx.app.log("BoopGame", "initgamerender");
+        this.cam = cam;
         this.shapeRenderer = new ShapeRenderer();
-        this.cam = new OrthographicCamera();
-        cam.setToOrtho(ORTHO_FLIPPED, gameWidth, gameHeight);
     }
 
     public void render(float delta, PlayerBoop playerBoop) {
@@ -35,9 +33,5 @@ public class GameRenderer {
     private void ClearScreenAndSetBackground() {
         Gdx.gl.glClearColor(0 / 255.0f, 0/ 255.0f, 0/ 255.0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-    }
-
-    public void resize(float gameWidth, float gameHeight) {
-        cam.setToOrtho(ORTHO_FLIPPED, gameWidth, gameHeight);
     }
 }

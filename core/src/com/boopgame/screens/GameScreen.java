@@ -1,7 +1,5 @@
 package com.boopgame.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.boopgame.Boop;
 import com.boopgame.gamescreen.GameLogic;
 import com.boopgame.gamescreen.GameRenderer;
@@ -9,19 +7,14 @@ import com.boopgame.gamescreen.GameRenderer;
 /**
  * Created by karl on 11.05.2016.
  */
-public class GameScreen implements Screen {
+public class GameScreen extends AbstractScreen {
 
     private final GameRenderer gameRenderer;
     private final GameLogic gameLogic;
-    private final float gameWidth;
-    private final float gameHeight;
 
     public GameScreen(Boop boop) {
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
-        gameWidth = 540;
-        gameHeight = screenHeight / (screenWidth / gameWidth);
-        gameRenderer = new GameRenderer(gameWidth, gameHeight);
+        super();
+        gameRenderer = new GameRenderer(gameWidth, gameHeight, cam);
         gameLogic = new GameLogic((int)screenWidth, (int)screenHeight);
     }
 
@@ -40,8 +33,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        float newGameHeight = height / (width / gameWidth);
-        gameRenderer.resize(gameWidth, newGameHeight);
+        super.resize(width, height);
         gameLogic.resize(width, height);
     }
 
