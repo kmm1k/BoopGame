@@ -31,6 +31,8 @@ public class GameRenderer {
         ClearScreenAndSetBackground();
         renderShapes(renderQueue);
         debugRenderer.render(world, cam.combined);
+        cam.position.set(renderQueue.get(0).getX(), renderQueue.get(0).getY(), 0);
+        cam.update();
 
     }
 
