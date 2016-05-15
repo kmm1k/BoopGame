@@ -1,0 +1,43 @@
+
+boopAtlas.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+selection
+  rotate: false
+  xy: 1, 243
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+modal
+  rotate: false
+  xy: 1, 119
+  size: 116, 122
+  split: 10, 11, 19, 17
+  orig: 116, 122
+  offset: 0, 0
+  index: -1
+button.up
+  rotate: false
+  xy: 259, 378
+  size: 116, 121
+  split: 9, 10, 18, 12
+  orig: 116, 121
+  offset: 0, 0
+  index: -1
+button.down
+  rotate: false
+  xy: 1, 1
+  size: 116, 116
+  split: 16, 14, 13, 16
+  orig: 116, 116
+  offset: 0, 0
+  index: -1
+background
+  rotate: false
+  xy: 119, 221
+  size: 200, 20
+  orig: 200, 20
+  offset: 0, 0
+  index: -1

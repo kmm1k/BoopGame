@@ -2,6 +2,9 @@ package com.boopgame.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -20,9 +23,13 @@ public class MenuScreen extends AbstractScreen {
     private final Stage stage;
     private final int savedHighScore;
     private final Skin skin;
+    private final Boop boop;
+    private TextButton buttonExit;
+    private TextButton buttonPlay;
 
     public MenuScreen(Boop boop) {
         super();
+        this.boop = boop;
         skin = AssetLoader.getSkin();
         Preferences prefs = Gdx.app.getPreferences("preferences");
         savedHighScore = prefs.getInteger("score", 0);
@@ -34,14 +41,16 @@ public class MenuScreen extends AbstractScreen {
 
     private void createUITable() {
         Table table = new Table(skin);
-        TextButton buttonExit = new TextButton("Exit", skin);
-        TextButton buttonPlay = new TextButton("Play", skin);
+        buttonExit = new TextButton("Exit", skin);
+        buttonPlay = new TextButton("Play", skin);
 
         table.setBounds(0, 0, gameWidth, gameHeight);
         buttonPlay.pad(10);
         buttonExit.pad(10);
         Label highScoreLabel = new Label("High score : " + savedHighScore, skin);
         table.add(highScoreLabel);
+        table.row();
+        table.add(AssetLoader.getTextfield()).prefWidth(gameWidth - 40).prefHeight(50f).space(10);
         table.row();
         table.add(buttonPlay).prefWidth(gameWidth - 40).space(10);
         table.row();
@@ -51,16 +60,44 @@ public class MenuScreen extends AbstractScreen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
+        buttonPlay.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
 
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                boop.setScreen(new GameScreen(boop));
+                stage.dispose();
+                dispose();
+            }
+        });
+        buttonExit.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                Gdx.app.exit();
+            }
+        });
     }
 
     @Override
     public void render(float delta) {
-
+        Gdx.gl.glClearColor(119 / 255.0f, 202/ 255.0f, 230/ 255.0f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        stage.act(delta);
+        stage.draw();
     }
 
     @Override
     public void resize(int width, int height) {
+
 
     }
 

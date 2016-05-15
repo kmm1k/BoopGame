@@ -6,8 +6,8 @@ import com.badlogic.gdx.math.Vector2;
  * Created by karl on 11.05.2016.
  */
 public class PlayerBoop {
-    private final float INITIAL_PLAYER_SIZE = 10f;
-    private final float INITIAL_PLAYER_SPEED = 1f;
+    private final float INITIAL_PLAYER_SIZE = 20f;
+    private final float INITIAL_PLAYER_SPEED = 6f;
     private final float playerSize;
     private final float playerSpeed;
     private final Vector2 playerPosition;
@@ -51,6 +51,6 @@ public class PlayerBoop {
     }
 
     public void movePlayerWithTouch(float speedX, float speedY) {
-        playerPosition.set(playerPosition.x + speedX, playerPosition.y + speedY);
+        playerPosition.set(playerPosition.x + speedX*INITIAL_PLAYER_SPEED, playerPosition.y + speedY*INITIAL_PLAYER_SPEED);
     }
 }
