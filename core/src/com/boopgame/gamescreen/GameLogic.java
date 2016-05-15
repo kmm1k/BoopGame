@@ -2,9 +2,12 @@ package com.boopgame.gamescreen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.World;
 import com.boopgame.gameobjects.BoopInterface;
 import com.boopgame.gameobjects.EntityBoop;
 import com.boopgame.gameobjects.PlayerBoop;
+import com.boopgame.helpers.GameContactListener;
 import com.boopgame.helpers.GameInputHandler;
 
 import java.util.ArrayList;
@@ -26,6 +29,8 @@ public class GameLogic {
     private int screenWidth;
     private int screenHeight;
     private final EntityBoop entityBoop;
+    private final World world;
+    private final ArrayList<Body> bodyDeleteList;
 
     public GameLogic(int width, int height) {
         screenWidth = width;
@@ -39,26 +44,40 @@ public class GameLogic {
         touchDown = false;
         GameInputHandler gameInputHandler = new GameInputHandler(this);
         Gdx.input.setInputProcessor(gameInputHandler);
-        playerBoop = new PlayerBoop();
-        entityBoop = new EntityBoop(10, 50, 50);
+        world = new World(new Vector2(0, 0), true);
+        playerBoop = new PlayerBoop(world);
+        entityBoop = new EntityBoop(10, 50, 50, world);
+        GameContactListener contactListener = new GameContactListener(this);
+        world.setContactListener(contactListener);
+        bodyDeleteList = new ArrayList<Body>();
     }
 
     public void update(float delta) {
+        deleteBodys();
         //TODO: tell gameRenderer that I moved, cam.translate(x,y,z)
+        boolean actionInitiated = false;
         if (upPressed){
+            actionInitiated = true;
             playerBoop.moveUp();
         }
         if (downPressed) {
+            actionInitiated = true;
             playerBoop.moveDown();
         }
         if (leftPressed) {
+            actionInitiated = true;
             playerBoop.moveLeft();
         }
         if (rightPressed) {
+            actionInitiated = true;
             playerBoop.moveRight();
         }
         if (touchDown) {
+            actionInitiated = true;
             calculatePlayerMovementFromTouch();
+        }
+        if (!actionInitiated) {
+            playerBoop.stopMoving();
         }
 
     }
@@ -82,6 +101,10 @@ public class GameLogic {
         renderQueue.add(playerBoop);
         renderQueue.add(entityBoop);
         return renderQueue;
+    }
+
+    public World getWorld() {
+        return world;
     }
 
     public void setRightPressed(boolean rightPressed) {
@@ -111,5 +134,21 @@ public class GameLogic {
     public void resize(int width, int height) {
         screenWidth = width;
         screenHeight = height;
+    }
+
+    public void stepWorld() {
+        world.step(1/60f, 6, 2);
+    }
+
+    public void addItemToDelete(Body body) {
+        bodyDeleteList.add(body);
+    }
+
+    private void deleteBodys() {
+        for (Body body :
+                bodyDeleteList) {
+            world.destroyBody(body);
+        }
+        bodyDeleteList.clear();
     }
 }

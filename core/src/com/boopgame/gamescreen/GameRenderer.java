@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
 import com.boopgame.gameobjects.BoopInterface;
 
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
  * Created by karl on 11.05.2016.
  */
 public class GameRenderer {
+    private final Box2DDebugRenderer debugRenderer;
     private OrthographicCamera cam;
     private ShapeRenderer shapeRenderer;
     private float gameWidth;
@@ -21,11 +24,14 @@ public class GameRenderer {
         //Gdx.app.log("BoopGame", "initgamerender");
         this.cam = cam;
         this.shapeRenderer = new ShapeRenderer();
+        debugRenderer = new Box2DDebugRenderer();
     }
 
-    public void render(float delta, ArrayList<BoopInterface> renderQueue) {
+    public void render(float delta, ArrayList<BoopInterface> renderQueue, World world) {
         ClearScreenAndSetBackground();
         renderShapes(renderQueue);
+        debugRenderer.render(world, cam.combined);
+
     }
 
     private void renderShapes(ArrayList<BoopInterface> renderQueue) {

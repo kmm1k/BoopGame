@@ -2,7 +2,7 @@ package com.boopgame;
 
 import com.badlogic.gdx.Game;
 import com.boopgame.helpers.AssetLoader;
-import com.boopgame.screens.MenuScreen;
+import com.boopgame.screens.GameScreen;
 
 public class Boop extends Game {
 	
@@ -10,7 +10,7 @@ public class Boop extends Game {
 	public void create () {
 		AssetLoader.load();
 		//setScreen(new MenuScreen(this));
-		setScreen(new MenuScreen(this));
+		setScreen(new GameScreen(this));
 	}
 
 	@Override
