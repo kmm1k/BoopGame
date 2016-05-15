@@ -4,7 +4,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -12,13 +11,15 @@ import com.badlogic.gdx.physics.box2d.World;
  * Created by karl on 11.05.2016.
  */
 public class EntityBoop implements BoopInterface {
-    private final float entitySize;
-    private final Vector2 entityPosition;
-    private final Body body;
+    protected float entitySize;
+    protected final Vector2 entityPosition;
+    protected final Body body;
+    private final String id;
 
 
-    public EntityBoop(float entitySize, float x, float y, World world) {
+    public EntityBoop(float entitySize, float x, float y, World world, String id) {
         this.entitySize = entitySize;
+        this.id = id;
         entityPosition = new Vector2(x, y);
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -32,8 +33,8 @@ public class EntityBoop implements BoopInterface {
         fixtureDef.density = 0.5f;
         fixtureDef.friction = 0.4f;
         fixtureDef.restitution = 0.6f; // Make it bounce a little bit
-
-        Fixture fixture = body.createFixture(fixtureDef);
+        body.setUserData(this);
+        body.createFixture(fixtureDef);
 
         // Remember to dispose of any shapes after you're done with them!
         // BodyDef and FixtureDef don't need disposing, but shapes do.
@@ -54,5 +55,17 @@ public class EntityBoop implements BoopInterface {
     @Override
     public float getRadius() {
         return this.entitySize/2;
+    }
+
+    @Override
+    public void setRadius(float radius) {
+
+        this.entitySize = radius*2;
+
+    }
+
+    @Override
+    public void dispose() {
+        entitySize = 0;
     }
 }

@@ -7,4 +7,7 @@ public interface BoopInterface {
     float getX();
     float getY();
     float getRadius();
+    void setRadius(float radius);
+    void dispose();
+
 }

@@ -10,14 +10,21 @@ import com.boopgame.gameobjects.PlayerBoop;
 import com.boopgame.helpers.GameContactListener;
 import com.boopgame.helpers.GameInputHandler;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
 /**
  * Created by karl on 11.05.2016.
  */
 public class GameLogic {
 
-    private final PlayerBoop playerBoop;
+    private PlayerBoop playerBoop;
+    private final Socket socket;
 
     private boolean gameOver;
     private boolean rightPressed;
@@ -29,12 +36,71 @@ public class GameLogic {
     private int screenWidth;
     private int screenHeight;
     private final EntityBoop entityBoop;
+    private final EntityBoop entityBoop2;
     private final World world;
     private final ArrayList<Body> bodyDeleteList;
+    private boolean connectionMade;
 
-    public GameLogic(int width, int height) {
+    public GameLogic(int width, int height, Socket socket) {
+        connectionMade = false;
+        this.socket = socket;
         screenWidth = width;
         screenHeight = height;
+        initVariables();
+        Gdx.input.setInputProcessor(new GameInputHandler(this));
+        world = new World(new Vector2(0, 0), true);
+        //socket code
+        JSONObject playerData = new JSONObject();
+        try {
+            playerData.put("name", "username");
+            socket.emit("addPlayer", playerData);
+            socket.on("getPlayer", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        String playerData = data.getString("player");
+                        JSONObject player = new JSONObject(playerData);
+                        Gdx.app.log("SocketIO", "My ID: " + player.get("size"));
+                        float size = Float.parseFloat(player.get("size").toString());
+                        float x = Float.parseFloat(player.getJSONObject("position").get("x").toString());
+                        float y = Float.parseFloat(player.getJSONObject("position").get("y").toString());
+                        String id = player.get("id").toString();
+                        float speed = Float.parseFloat(player.get("speed").toString());
+                        String name = player.get("name").toString();
+                        playerBoop = new PlayerBoop(size, x, y, world, id, speed, name);
+                        connectionMade = true;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Gdx.app.log("SocketIO", "Error getting ID");
+                    }
+                }
+            }).on("map", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        String mapData = data.getString("map");
+                        Gdx.app.log("BoopGame", mapData);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Gdx.app.log("SocketIO", "Error getting ID");
+                    }
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        entityBoop = new EntityBoop(10, 50, 50, world, "k");
+        entityBoop2 = new EntityBoop(10, 300, 50, world, "b");
+        GameContactListener contactListener = new GameContactListener(this);
+        world.setContactListener(contactListener);
+        bodyDeleteList = new ArrayList<Body>();
+    }
+
+    private void initVariables() {
         touchPosition = new Vector2(0, 0);
         gameOver = false;
         upPressed = false;
@@ -42,17 +108,11 @@ public class GameLogic {
         leftPressed = false;
         rightPressed = false;
         touchDown = false;
-        GameInputHandler gameInputHandler = new GameInputHandler(this);
-        Gdx.input.setInputProcessor(gameInputHandler);
-        world = new World(new Vector2(0, 0), true);
-        playerBoop = new PlayerBoop(world);
-        entityBoop = new EntityBoop(10, 50, 50, world);
-        GameContactListener contactListener = new GameContactListener(this);
-        world.setContactListener(contactListener);
-        bodyDeleteList = new ArrayList<Body>();
     }
 
     public void update(float delta) {
+        if (!connectionMade)
+            return;
         deleteBodys();
         //TODO: tell gameRenderer that I moved, cam.translate(x,y,z)
         boolean actionInitiated = false;
@@ -100,6 +160,7 @@ public class GameLogic {
         ArrayList<BoopInterface> renderQueue = new ArrayList<BoopInterface>();
         renderQueue.add(playerBoop);
         renderQueue.add(entityBoop);
+        renderQueue.add(entityBoop2);
         return renderQueue;
     }
 
@@ -147,8 +208,18 @@ public class GameLogic {
     private void deleteBodys() {
         for (Body body :
                 bodyDeleteList) {
+            BoopInterface boop = (BoopInterface) body.getUserData();
+            boop.dispose();
             world.destroyBody(body);
         }
         bodyDeleteList.clear();
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public boolean getConnectionMade() {
+        return connectionMade;
     }
 }

@@ -14,6 +14,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.boopgame.Boop;
 import com.boopgame.helpers.AssetLoader;
 
+import io.socket.client.Socket;
+
 
 /**
  * Created by karl on 11.05.2016.
@@ -24,11 +26,13 @@ public class MenuScreen extends AbstractScreen {
     private final int savedHighScore;
     private final Skin skin;
     private final Boop boop;
+    private final Socket socket;
     private TextButton buttonExit;
     private TextButton buttonPlay;
 
-    public MenuScreen(Boop boop) {
+    public MenuScreen(Boop boop, Socket socket) {
         super();
+        this.socket = socket;
         this.boop = boop;
         skin = AssetLoader.getSkin();
         Preferences prefs = Gdx.app.getPreferences("preferences");
@@ -69,7 +73,7 @@ public class MenuScreen extends AbstractScreen {
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                boop.setScreen(new GameScreen(boop));
+                boop.setScreen(new GameScreen(boop, socket));
                 stage.dispose();
                 dispose();
             }
