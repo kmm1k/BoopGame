@@ -28,7 +28,7 @@ public class GameScreen extends AbstractScreen {
         if(delta > .1f)
             delta = .1f;
         gameLogic.update(delta);
-        gameRenderer.render(delta, gameLogic.getPlayerBoop());
+        gameRenderer.render(delta, gameLogic.getGameEntities());
     }
 
     @Override

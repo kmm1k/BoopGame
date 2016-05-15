@@ -5,9 +5,9 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * Created by karl on 11.05.2016.
  */
-public class PlayerBoop {
+public class PlayerBoop implements BoopInterface {
     private final float INITIAL_PLAYER_SIZE = 20f;
-    private final float INITIAL_PLAYER_SPEED = 6f;
+    private final float INITIAL_PLAYER_SPEED = 3f;
     private final float playerSize;
     private final float playerSpeed;
     private final Vector2 playerPosition;
@@ -22,14 +22,17 @@ public class PlayerBoop {
 
     }
 
+    @Override
     public float getX() {
         return playerPosition.x;
     }
 
+    @Override
     public float getY() {
         return playerPosition.y;
     }
 
+    @Override
     public float getRadius() {
         return playerSize/2;
     }

@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * Created by karl on 11.05.2016.
  */
-public class EntityBoop {
+public class EntityBoop implements BoopInterface {
     private final float entitySize;
     private final Vector2 entityPosition;
 
@@ -16,4 +16,18 @@ public class EntityBoop {
     }
 
 
+    @Override
+    public float getX() {
+        return entityPosition.x;
+    }
+
+    @Override
+    public float getY() {
+        return entityPosition.y;
+    }
+
+    @Override
+    public float getRadius() {
+        return this.entitySize/2;
+    }
 }

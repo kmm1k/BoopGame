@@ -2,11 +2,12 @@ package com.boopgame.gamescreen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
+import com.boopgame.gameobjects.BoopInterface;
 import com.boopgame.gameobjects.EntityBoop;
 import com.boopgame.gameobjects.PlayerBoop;
 import com.boopgame.helpers.GameInputHandler;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by karl on 11.05.2016.
@@ -22,7 +23,6 @@ public class GameLogic {
     private boolean upPressed;
     private boolean touchDown;
     private Vector2 touchPosition;
-    private final GameInputHandler gameInputHandler;
     private int screenWidth;
     private int screenHeight;
     private final EntityBoop entityBoop;
@@ -37,7 +37,7 @@ public class GameLogic {
         leftPressed = false;
         rightPressed = false;
         touchDown = false;
-        gameInputHandler = new GameInputHandler(this);
+        GameInputHandler gameInputHandler = new GameInputHandler(this);
         Gdx.input.setInputProcessor(gameInputHandler);
         playerBoop = new PlayerBoop();
         entityBoop = new EntityBoop(10, 50, 50);
@@ -77,9 +77,11 @@ public class GameLogic {
         return playerBoop;
     }
 
-    public List<Object> getGameEntities() {
-
-        return null;
+    public ArrayList<BoopInterface> getGameEntities() {
+        ArrayList<BoopInterface> renderQueue = new ArrayList<BoopInterface>();
+        renderQueue.add(playerBoop);
+        renderQueue.add(entityBoop);
+        return renderQueue;
     }
 
     public void setRightPressed(boolean rightPressed) {
