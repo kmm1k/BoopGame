@@ -24,18 +24,15 @@ public class GameContactListener implements ContactListener {
 
     @Override
     public void beginContact(Contact contact) {
-        //float fixtureARadius = contact.getFixtureA().getShape().getRadius();
-        //float fixtureBRadius = contact.getFixtureB().getShape().getRadius();
         BoopInterface boopA = (BoopInterface) contact.getFixtureA().getBody().getUserData();
         BoopInterface boopB = (BoopInterface) contact.getFixtureB().getBody().getUserData();
         float radius = boopA.getRadius() + boopB.getRadius();
         if (boopA.getRadius() > boopB.getRadius()) {
             boopA.setRadius(radius);
             contact.getFixtureA().getShape().setRadius(radius);
-            //BoopInterface boop = (BoopInterface) contact.getFixtureA().getBody().getUserData();
-            //Gdx.app.log("BoopGame", boop.getRadius()+"");
-            //socket.emit()
             gameLogic.addItemToDelete(contact.getFixtureB().getBody());
+        } else if (boopA.getRadius() == boopB.getRadius()){
+
         } else {
             boopB.setRadius(radius);
             contact.getFixtureB().getShape().setRadius(radius);

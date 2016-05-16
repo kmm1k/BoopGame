@@ -27,24 +27,30 @@ public class GameRenderer {
         debugRenderer = new Box2DDebugRenderer();
     }
 
-    public void render(float delta, ArrayList<BoopInterface> renderQueue, World world) {
+    public void render(float delta, ArrayList<BoopInterface> renderQueue, World world, String id) {
         ClearScreenAndSetBackground();
-        renderShapes(renderQueue);
-        debugRenderer.render(world, cam.combined);
-        cam.position.set(renderQueue.get(0).getX(), renderQueue.get(0).getY(), 0);
-        cam.update();
-
+        renderShapes(renderQueue, world, id);
     }
 
-    private void renderShapes(ArrayList<BoopInterface> renderQueue) {
-        for (BoopInterface object:
-             renderQueue) {
-            shapeRenderer.setProjectionMatrix(cam.combined);
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(0, 1, 0, 1);
-            shapeRenderer.circle(object.getX(), object.getY(), object.getRadius());
-            shapeRenderer.end();
+    private void renderShapes(ArrayList<BoopInterface> renderQueue, World world, String id) {
+        synchronized (renderQueue){
+            for (BoopInterface object:
+                    renderQueue) {
+                shapeRenderer.setProjectionMatrix(cam.combined);
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                shapeRenderer.setColor(0, 1, 0, 1);
+                shapeRenderer.circle(object.getX(), object.getY(), object.getRadius());
+                shapeRenderer.end();
+                //Gdx.app.log("BoopGame", "IDS "+object.getId()+id);
+                if (object.getId().equals(id)){
+                    cam.position.set(object.getX(), object.getY(), 0);
+                    cam.zoom = 1 + (object.getRadius()/30);
+                    cam.update();
+                }
+                debugRenderer.render(world, cam.combined);
+            }
         }
+
     }
 
     private void ClearScreenAndSetBackground() {

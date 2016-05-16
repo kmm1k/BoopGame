@@ -13,11 +13,13 @@ public class GameScreen extends AbstractScreen {
 
     private final GameRenderer gameRenderer;
     private final GameLogic gameLogic;
+    private String id;
 
-    public GameScreen(Boop boop, Socket socket) {
+    public GameScreen(Boop boop, Socket socket, String id) {
         super();
-        gameRenderer = new GameRenderer(gameWidth, gameHeight, cam);
+        this.id = id;
         gameLogic = new GameLogic((int)screenWidth, (int)screenHeight, socket);
+        gameRenderer = new GameRenderer(gameWidth, gameHeight, cam);
     }
 
     @Override
@@ -31,7 +33,7 @@ public class GameScreen extends AbstractScreen {
             if (delta > .1f)
                 delta = .1f;
             gameLogic.update(delta);
-            gameRenderer.render(delta, gameLogic.getGameEntities(), gameLogic.getWorld());
+            gameRenderer.render(delta, gameLogic.getGameEntities(), gameLogic.getWorld(), gameLogic.getId());
             gameLogic.stepWorld();
         }
     }
@@ -60,5 +62,13 @@ public class GameScreen extends AbstractScreen {
     @Override
     public void dispose() {
 
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
     }
 }

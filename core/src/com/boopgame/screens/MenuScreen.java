@@ -27,13 +27,15 @@ public class MenuScreen extends AbstractScreen {
     private final Skin skin;
     private final Boop boop;
     private final Socket socket;
+    private final String id;
     private TextButton buttonExit;
     private TextButton buttonPlay;
 
-    public MenuScreen(Boop boop, Socket socket) {
+    public MenuScreen(Boop boop, Socket socket, String id) {
         super();
         this.socket = socket;
         this.boop = boop;
+        this.id = id;
         skin = AssetLoader.getSkin();
         Preferences prefs = Gdx.app.getPreferences("preferences");
         savedHighScore = prefs.getInteger("score", 0);
@@ -73,7 +75,7 @@ public class MenuScreen extends AbstractScreen {
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                boop.setScreen(new GameScreen(boop, socket));
+                boop.setScreen(new GameScreen(boop, socket, id));
                 stage.dispose();
                 dispose();
             }

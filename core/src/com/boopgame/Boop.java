@@ -18,7 +18,6 @@ public class Boop extends Game {
 
 	private Socket socket;
     private String id;
-    private String initialMapWithPlayerPosition;
 
     @Override
 	public void create () {
@@ -26,8 +25,10 @@ public class Boop extends Game {
 		//setScreen(new MenuScreen(this));
 		makeConnection();
         configSocketEvents();
-		setScreen(new GameScreen(this, socket));
+        setScreen(new GameScreen(this, socket, id));
 	}
+
+
 
     public void configSocketEvents(){
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
