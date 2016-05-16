@@ -41,6 +41,7 @@ public class GameLogic {
     private final ArrayList<Body> bodyDeleteList;
     private boolean connectionMade;
     private HashMap<String, BoopInterface> renderQueue;
+    private ArrayList<JSONObject> updateQueue;
     float updateTimer;
     private String id;
     private float deleteTimer;
@@ -54,6 +55,7 @@ public class GameLogic {
         Gdx.input.setInputProcessor(new GameInputHandler(this));
         world = new World(new Vector2(0, 0), true);
         renderQueue = new HashMap<String, BoopInterface>();
+        updateQueue = new ArrayList<JSONObject>();
         SocketIOConnection(socket);
 
         GameContactListener contactListener = new GameContactListener(this);
@@ -102,7 +104,7 @@ public class GameLogic {
                         String playerData = data.getString("player");
                         JSONObject player = new JSONObject(playerData);
                         // draw out other players when they move
-                        drawOutOtherPlayer(player);
+                        updateQueue.add(player);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -269,6 +271,12 @@ public class GameLogic {
 
         if (!connectionMade)
             return;
+        for (JSONObject obj :
+                updateQueue) {
+            drawOutOtherPlayer(obj);
+        }
+
+        updateQueue.clear();
         synchronized (renderQueue) {
             updatePlayerPosition(delta);
         }
@@ -350,7 +358,7 @@ public class GameLogic {
     }
 
     public void stepWorld() {
-        world.step(1 / 60f, 6, 2);
+        world.step(1 / 60f, 0, 1);
     }
 
     public void addItemToDelete(Body body) {

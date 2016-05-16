@@ -87,7 +87,7 @@ public class EntityBoop implements BoopInterface {
         this.entityPosition.x = x;
         this.entityPosition.y = y;
         this.entitySpeed = speed;
-        //body.setTransform(entityPosition, body.getAngle());
+        body.setTransform(entityPosition, body.getAngle());
     }
 
     @Override
