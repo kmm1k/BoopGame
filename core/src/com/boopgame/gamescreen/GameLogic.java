@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -39,9 +40,10 @@ public class GameLogic {
     private final World world;
     private final ArrayList<Body> bodyDeleteList;
     private boolean connectionMade;
-    private ArrayList<BoopInterface> renderQueue;
+    private HashMap<String, BoopInterface> renderQueue;
     float updateTimer;
     private String id;
+    private float deleteTimer;
 
     public GameLogic(int width, int height, Socket socket) {
         connectionMade = false;
@@ -51,7 +53,7 @@ public class GameLogic {
         initVariables();
         Gdx.input.setInputProcessor(new GameInputHandler(this));
         world = new World(new Vector2(0, 0), true);
-        renderQueue = new ArrayList<BoopInterface>();
+        renderQueue = new HashMap<String, BoopInterface>();
         SocketIOConnection(socket);
 
         GameContactListener contactListener = new GameContactListener(this);
@@ -68,6 +70,7 @@ public class GameLogic {
         rightPressed = false;
         touchDown = false;
         updateTimer = 0;
+        deleteTimer = 0;
     }
 
     private void SocketIOConnection(Socket socket) {
@@ -82,23 +85,24 @@ public class GameLogic {
                     try {
                         String playerData = data.getString("player");
                         JSONObject player = new JSONObject(playerData);
-                        makeGameObject(player);
+                        //make user game object
+                        makePlayer(player);
                         connectionMade = true;
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
-            }).on("map", new Emitter.Listener() {
+            }).on("player", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
+                    if (!connectionMade)
+                        return;
                     JSONObject data = (JSONObject) args[0];
                     try {
-                        String mapData = data.getString("map");
-                        JSONArray mapJSON = new JSONArray(mapData);
-                        for (int i = 0; i < mapJSON.length(); i++) {
-                            makeGameObject(mapJSON.getJSONObject(i));
-                        }
-                        Gdx.app.log("BoopGame", mapData);
+                        String playerData = data.getString("player");
+                        JSONObject player = new JSONObject(playerData);
+                        // draw out other players when they move
+                        drawOutOtherPlayer(player);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -109,16 +113,54 @@ public class GameLogic {
                     JSONObject data = (JSONObject) args[0];
                     try {
                         String idData = data.getString("id");
-                        synchronized (renderQueue){
-                            for (BoopInterface boop :
-                                    renderQueue) {
-                                if (boop.getId().equals(idData)) {
-                                    bodyDeleteList.add(boop.getBody());
-                                }
-                            }
-                        }
+                        // when smb eats an entity, delete it from my game
+                        removeEntity(idData);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).on("addEntity", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        String entityData = data.getString("entity");
+                        JSONObject entityObject = new JSONObject(entityData);
+                        // when an entity is added add it to my game
+                        addEntity(entityObject);
+                        //Gdx.app.log("BoopGame", id.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).on("getMap", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        String mapString = data.getString("map");
+                        JSONArray mapData = new JSONArray(mapString);
+                        for (int i = 0; i < mapData.length(); i++) {
+                                addOtherPlayer((JSONObject) mapData.get(i));
 
-                        Gdx.app.log("BoopGame", id.toString());
+                        }
+                        // when an entity is added add it to my game
+                        //Gdx.app.log("BoopGame", id.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).on("addOtherPlayer", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        String otherPlayerData = data.getString("otherPlayer");
+                        JSONObject entityObject = new JSONObject(otherPlayerData);
+                        // when an entity is added add it to my game
+                        addOtherPlayer(entityObject);
+                        // when an entity is added add it to my game
+                        Gdx.app.log("BoopGame","add other entiuty");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -129,53 +171,97 @@ public class GameLogic {
         }
     }
 
-    private void makeGameObject(JSONObject jsonObject) throws JSONException {
-        String id = jsonObject.get("id").toString();
-        float size = Float.parseFloat(jsonObject.get("size").toString());
-        float x = Float.parseFloat(jsonObject.getJSONObject("position").get("x").toString());
-        float y = Float.parseFloat(jsonObject.getJSONObject("position").get("y").toString());
-        float speed = 0;
+    private void addOtherPlayer(JSONObject player) {
         String name = "";
+        float speed = 0;
         try {
-            name = jsonObject.get("name").toString();
-            speed = Float.parseFloat(jsonObject.get("speed").toString());
-        } catch (JSONException e) {
-
-        }
-        for (BoopInterface boop :
-                renderQueue) {
-            if (boop.getId().equals(id)) {
-                boop.update(size, x, y, speed);
-                return;
+            String id = player.get("id").toString();
+            float size = Float.parseFloat(player.get("size").toString());
+            float x = Float.parseFloat(player.getJSONObject("position").get("x").toString());
+            float y = Float.parseFloat(player.getJSONObject("position").get("y").toString());
+            name = player.get("name").toString();
+            speed = Float.parseFloat(player.get("speed").toString());
+            PlayerBoop entity = new PlayerBoop(size, x, y, world, id, speed, name);
+            synchronized (renderQueue) {
+                renderQueue.put(id, entity);
             }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        if (speed == 0) {
+    }
+
+    private void addEntity(JSONObject entityObject) {
+        try {
+            String id = entityObject.get("id").toString();
+            float size = Float.parseFloat(entityObject.get("size").toString());
+            float x = Float.parseFloat(entityObject.getJSONObject("position").get("x").toString());
+            float y = Float.parseFloat(entityObject.getJSONObject("position").get("y").toString());
             EntityBoop entity = new EntityBoop(size, x, y, world, id);
             synchronized (renderQueue) {
-                renderQueue.add(entity);
+                renderQueue.put(entity.getId(), entity);
             }
-        } else {
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void drawOutOtherPlayer(JSONObject player) {
+        try {
+            String id = player.get("id").toString();
+            float size = Float.parseFloat(player.get("size").toString());
+            float x = Float.parseFloat(player.getJSONObject("position").get("x").toString());
+            float y = Float.parseFloat(player.getJSONObject("position").get("y").toString());
+            float speed = Float.parseFloat(player.get("speed").toString());
+            synchronized (renderQueue) {
+                //Gdx.app.log("BoopGame", renderQueue.toString());
+                renderQueue.get(id).update(size, x, y, speed);
+            }
+        } catch (JSONException e) {
+            //e.printStackTrace();
+        }
+    }
+
+    private void removeEntity(String idData) {
+        synchronized (renderQueue){
+            renderQueue.remove(idData);
+        }
+    }
+
+    private void updateGameObject(JSONObject entity) {
+
+    }
+
+    private void makePlayer(JSONObject jsonObject) throws JSONException {
+
+        try {
+            String id = jsonObject.get("id").toString();
+            float size = Float.parseFloat(jsonObject.get("size").toString());
+            float x = Float.parseFloat(jsonObject.getJSONObject("position").get("x").toString());
+            float y = Float.parseFloat(jsonObject.getJSONObject("position").get("y").toString());
+            String name = jsonObject.get("name").toString();
+            float speed = Float.parseFloat(jsonObject.get("speed").toString());
             if (playerBoop == null){
                 this.id = id;
                 playerBoop = new PlayerBoop(size, x, y, world, id, speed, name);
                 synchronized (renderQueue) {
-                    renderQueue.add(playerBoop);
-                }
-            }else {
-                PlayerBoop playerEntity = new PlayerBoop(size, x, y, world, id, speed, name);
-                synchronized (renderQueue) {
-                    renderQueue.add(playerEntity);
+                    renderQueue.put(id, playerBoop);
                 }
             }
+        } catch (JSONException e) {
 
         }
     }
 
     private void updatePlayerPosition(float delta) {
         updateTimer += delta;
-        if (updateTimer > .9f) {
-            updateTimer = 0;
+        if (updateTimer > .05f) {
+            updateTimer = 0f;
             socket.emit("updatePlayer", playerBoop.getData());
+        }
+        deleteTimer += delta;
+        if (deleteTimer > .1f){
+            deleteTimer = 0f;
+            deleteBodys();
         }
     }
 
@@ -186,7 +272,6 @@ public class GameLogic {
         synchronized (renderQueue) {
             updatePlayerPosition(delta);
         }
-        deleteBodys();
         boolean actionInitiated = false;
         if (upPressed) {
             actionInitiated = true;
@@ -220,11 +305,11 @@ public class GameLogic {
         float speedSum = Math.abs(speedX) + Math.abs(speedY);
         speedX = speedX / speedSum;
         speedY = speedY / speedSum;
-        Gdx.app.log("BoopGame", " " + speedX + " y " + speedY);
+        //Gdx.app.log("BoopGame", " " + speedX + " y " + speedY);
         playerBoop.movePlayerWithTouch(speedX, speedY);
     }
 
-    public ArrayList<BoopInterface> getGameEntities() {
+    public HashMap<String, BoopInterface> getGameEntities() {
         synchronized (renderQueue){
             return renderQueue;
         }
@@ -281,13 +366,13 @@ public class GameLogic {
                 removeEntityFromServer(boop.getId());
                 renderQueue.remove(boop);
             }
-            //boop.dispose();
+            boop.dispose();
             world.destroyBody(body);
         }
         bodyDeleteList.clear();
     }
 
-    private void removeEntityFromServer(String boopId) {
+    public void removeEntityFromServer(String boopId) {
         JSONObject data = new JSONObject();
         try {
             data.put("id", boopId);
