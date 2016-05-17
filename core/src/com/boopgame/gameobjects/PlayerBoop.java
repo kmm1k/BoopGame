@@ -5,7 +5,7 @@ import com.badlogic.gdx.physics.box2d.World;
 /**
  * Created by karl on 11.05.2016.
  */
-public class PlayerBoop extends EntityBoop {
+public class PlayerBoop extends CircleBoop {
 
     public PlayerBoop(float entitySize, float x, float y, World world, String id, float speed, String name) {
         super(entitySize, x, y, world, id);

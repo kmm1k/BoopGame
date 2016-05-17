@@ -11,6 +11,7 @@ public interface BoopInterface {
     float getX();
     float getY();
     float getRadius();
+    float getSize();
     String getId();
     void setRadius(float radius);
     void dispose();

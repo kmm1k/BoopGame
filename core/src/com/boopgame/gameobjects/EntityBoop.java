@@ -3,9 +3,6 @@ package com.boopgame.gameobjects;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
 import org.json.JSONException;
@@ -17,7 +14,6 @@ import org.json.JSONObject;
 public class EntityBoop implements BoopInterface {
     protected float entitySize;
     protected final Vector2 entityPosition;
-    protected final Body body;
     protected final String id;
     protected float entitySpeed;
 
@@ -27,25 +23,9 @@ public class EntityBoop implements BoopInterface {
         this.entitySize = entitySize;
         this.id = id;
         entityPosition = new Vector2(x, y);
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(entityPosition.x, entityPosition.y);
-        body = world.createBody(bodyDef);
-        CircleShape circle = new CircleShape();
-        circle.setRadius(entitySize/2);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = circle;
-        fixtureDef.density = 0.5f;
-        fixtureDef.friction = 0.4f;
-        fixtureDef.restitution = 0.6f; // Make it bounce a little bit
-        body.setUserData(this);
-        body.createFixture(fixtureDef);
-
-        // Remember to dispose of any shapes after you're done with them!
-        // BodyDef and FixtureDef don't need disposing, but shapes do.
-        circle.dispose();
     }
+
+
 
 
     @Override
@@ -61,6 +41,11 @@ public class EntityBoop implements BoopInterface {
     @Override
     public float getRadius() {
         return this.entitySize/2;
+    }
+
+    @Override
+    public float getSize() {
+        return entitySize;
     }
 
     @Override
@@ -83,12 +68,9 @@ public class EntityBoop implements BoopInterface {
 
     @Override
     public void update(float size, float x, float y, float speed) {
-        this.entitySize = size;
-        this.entityPosition.x = x;
-        this.entityPosition.y = y;
-        this.entitySpeed = speed;
-        body.setTransform(entityPosition, body.getAngle());
+
     }
+
 
     @Override
     public JSONObject getData() {
@@ -107,6 +89,6 @@ public class EntityBoop implements BoopInterface {
 
     @Override
     public Body getBody() {
-        return body;
+        return null;
     }
 }
