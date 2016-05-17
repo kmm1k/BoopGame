@@ -3,7 +3,6 @@ package com.boopgame.gameobjects;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.World;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,7 +17,7 @@ public class EntityBoop implements BoopInterface {
     protected float entitySpeed;
 
 
-    public EntityBoop(float entitySize, float x, float y, World world, String id) {
+    public EntityBoop(float entitySize, float x, float y, String id) {
         this.entitySpeed = 0;
         this.entitySize = entitySize;
         this.id = id;

@@ -13,7 +13,7 @@ public class CircleBoop extends EntityBoop {
     protected final Body body;
 
     public CircleBoop(float entitySize, float x, float y, World world, String id) {
-        super(entitySize, x, y, world, id);
+        super(entitySize, x, y, id);
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(entityPosition.x, entityPosition.y);

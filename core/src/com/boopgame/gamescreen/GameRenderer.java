@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.boopgame.gameobjects.BoopInterface;
+import com.boopgame.gameobjects.PlayerBoop;
+import com.boopgame.gameobjects.WallBoop;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,32 +30,55 @@ public class GameRenderer {
         debugRenderer = new Box2DDebugRenderer();
     }
 
-    public void render(float delta, HashMap<String, BoopInterface> renderQueue, World world, String id) {
+    public void render(float delta, HashMap<String, BoopInterface> renderQueue, World world,
+                       String id) {
         ClearScreenAndSetBackground();
-        renderShapes(renderQueue, world, id);
+        renderShapes(renderQueue, id);
+        debugRenderer.render(world, cam.combined);
+        //drawBox(new WallBoop(200, -200, -200, world, "asd", 0, 200, 300));
     }
 
-    private void renderShapes(HashMap<String, BoopInterface> renderQueue, World world, String id) {
+    private void renderShapes(HashMap<String, BoopInterface> renderQueue, String id) {
         synchronized (renderQueue){
             for (Map.Entry<String, BoopInterface> object:
                     renderQueue.entrySet()) {
-                shapeRenderer.setProjectionMatrix(cam.combined);
-                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                shapeRenderer.setColor(0, 1, 0, 1);
-                shapeRenderer.circle(object.getValue().getX(),
-                        object.getValue().getY(),
-                        object.getValue().getRadius());
-                shapeRenderer.end();
-                //Gdx.app.log("BoopGame", "IDS "+object.getId()+id);
-                if (object.getKey().equals(id)){
-                    cam.position.set(object.getValue().getX(), object.getValue().getY(), 0);
-                    cam.zoom = 1 + (object.getValue().getRadius()/30);
-                    cam.update();
+                if (object.getValue() instanceof PlayerBoop){
+                    updateCamera(id, object);
+                    drawCircle(object.getValue());
+                } if (object.getValue() instanceof WallBoop) {
+                    drawBox((WallBoop) object.getValue());
                 }
-                debugRenderer.render(world, cam.combined);
             }
         }
 
+    }
+
+    private void updateCamera(String id, Map.Entry<String, BoopInterface> object) {
+        if (object.getKey().equals(id)) {
+            cam.position.set(object.getValue().getX(), object.getValue().getY(), 0);
+            cam.zoom = 1 + (object.getValue().getRadius()/30);
+            cam.update();
+        }
+    }
+
+    private void drawBox(WallBoop box) {
+        shapeRenderer.setProjectionMatrix(cam.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 1, 0, 1);
+        shapeRenderer.rect(box.getX(), box.getY(), 0, 0, box.getWidth(), box.getHeight(), 1, 1,
+                box.getEntityAngle());
+        shapeRenderer.end();
+    }
+
+    private void drawCircle(BoopInterface object) {
+        shapeRenderer.setProjectionMatrix(cam.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 1, 0, 1);
+        shapeRenderer.circle(object.getX(),
+                object.getY(),
+                object.getRadius());
+        shapeRenderer.end();
+        //Gdx.app.log("BoopGame", "IDS "+object.getId()+id);
     }
 
     private void ClearScreenAndSetBackground() {

@@ -6,6 +6,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.boopgame.gameobjects.BoopInterface;
 import com.boopgame.gameobjects.PlayerBoop;
+import com.boopgame.gameobjects.WallBoop;
 import com.boopgame.helpers.GameContactListener;
 import com.boopgame.helpers.GameInputHandler;
 
@@ -180,20 +181,31 @@ public class GameLogic {
         }
     }
 
-    private void addNewEntity(JSONObject player) {
+    private void addNewEntity(JSONObject JSONentity) {
         String name = "";
         float speed = 0;
         try {
-            String id = player.get("id").toString();
-            float size = Float.parseFloat(player.get("size").toString());
-            float x = Float.parseFloat(player.getJSONObject("position").get("x").toString());
-            float y = Float.parseFloat(player.getJSONObject("position").get("y").toString());
-            name = player.get("name").toString();
-            speed = Float.parseFloat(player.get("speed").toString());
-            PlayerBoop entity = new PlayerBoop(size, x, y, world, id, speed, name);
+            String type = JSONentity.get("type").toString();
+            String id = JSONentity.get("id").toString();
+            float size = Float.parseFloat(JSONentity.get("size").toString());
+            float x = Float.parseFloat(JSONentity.getJSONObject("position").get("x").toString());
+            float y = Float.parseFloat(JSONentity.getJSONObject("position").get("y").toString());
+            name = JSONentity.get("name").toString();
+            speed = Float.parseFloat(JSONentity.get("speed").toString());
+            BoopInterface entity;
+
+            if (type.equals("circle")){
+                entity = new PlayerBoop(size, x, y, world, id, speed, name);
+            } else {
+                float angle = Float.parseFloat(JSONentity.get("angle").toString());
+                float width = Float.parseFloat(JSONentity.get("width").toString());
+                float height = Float.parseFloat(JSONentity.get("height").toString());
+                entity = new WallBoop(size, x, y, world, id, angle, width, height);
+            }
             synchronized (renderQueue) {
                 renderQueue.put(id, entity);
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
