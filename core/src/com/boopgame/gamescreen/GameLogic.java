@@ -223,9 +223,6 @@ public class GameLogic {
         }
     }
 
-    private void updateGameObject(JSONObject entity) {
-
-    }
 
     private void makePlayer(JSONObject jsonObject) throws JSONException {
 
