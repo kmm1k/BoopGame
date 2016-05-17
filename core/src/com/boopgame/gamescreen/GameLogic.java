@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.boopgame.gameobjects.BoopInterface;
-import com.boopgame.gameobjects.EntityBoop;
 import com.boopgame.gameobjects.PlayerBoop;
 import com.boopgame.helpers.GameContactListener;
 import com.boopgame.helpers.GameInputHandler;
@@ -16,6 +15,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -45,6 +45,8 @@ public class GameLogic {
     float updateTimer;
     private String id;
     private float deleteTimer;
+    private List<String> removeQueue;
+    private List<JSONObject> addQueue;
 
     public GameLogic(int width, int height, Socket socket) {
         connectionMade = false;
@@ -56,6 +58,8 @@ public class GameLogic {
         world = new World(new Vector2(0, 0), true);
         renderQueue = new HashMap<String, BoopInterface>();
         updateQueue = new ArrayList<JSONObject>();
+        removeQueue = new ArrayList<String>();
+        addQueue = new ArrayList<JSONObject>();
         SocketIOConnection(socket);
 
         GameContactListener contactListener = new GameContactListener(this);
@@ -109,6 +113,24 @@ public class GameLogic {
                         e.printStackTrace();
                     }
                 }
+            }).on("playerMap", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    if (!connectionMade)
+                        return;
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        String playerMapData = data.getString("playerMap");
+                        //Gdx.app.log("BoopGame", playerMapData);
+                        JSONArray playerMap = new JSONArray(playerMapData);
+                        // draw out other players when they move
+                        for (int i = 0; i < playerMap.length(); i++) {
+                            updateQueue.add((JSONObject) playerMap.get(i));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }).on("removeEntity", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
@@ -116,21 +138,7 @@ public class GameLogic {
                     try {
                         String idData = data.getString("id");
                         // when smb eats an entity, delete it from my game
-                        removeEntity(idData);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).on("addEntity", new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    JSONObject data = (JSONObject) args[0];
-                    try {
-                        String entityData = data.getString("entity");
-                        JSONObject entityObject = new JSONObject(entityData);
-                        // when an entity is added add it to my game
-                        addEntity(entityObject);
-                        //Gdx.app.log("BoopGame", id.toString());
+                        removeQueue.add(idData);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -143,8 +151,7 @@ public class GameLogic {
                         String mapString = data.getString("map");
                         JSONArray mapData = new JSONArray(mapString);
                         for (int i = 0; i < mapData.length(); i++) {
-                                addOtherPlayer((JSONObject) mapData.get(i));
-
+                                addNewEntity((JSONObject) mapData.get(i));
                         }
                         // when an entity is added add it to my game
                         //Gdx.app.log("BoopGame", id.toString());
@@ -152,7 +159,7 @@ public class GameLogic {
                         e.printStackTrace();
                     }
                 }
-            }).on("addOtherPlayer", new Emitter.Listener() {
+            }).on("addEntity", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     JSONObject data = (JSONObject) args[0];
@@ -160,7 +167,7 @@ public class GameLogic {
                         String otherPlayerData = data.getString("otherPlayer");
                         JSONObject entityObject = new JSONObject(otherPlayerData);
                         // when an entity is added add it to my game
-                        addOtherPlayer(entityObject);
+                        addQueue.add(entityObject);
                         // when an entity is added add it to my game
                         Gdx.app.log("BoopGame","add other entiuty");
                     } catch (JSONException e) {
@@ -173,7 +180,7 @@ public class GameLogic {
         }
     }
 
-    private void addOtherPlayer(JSONObject player) {
+    private void addNewEntity(JSONObject player) {
         String name = "";
         float speed = 0;
         try {
@@ -192,21 +199,6 @@ public class GameLogic {
         }
     }
 
-    private void addEntity(JSONObject entityObject) {
-        try {
-            String id = entityObject.get("id").toString();
-            float size = Float.parseFloat(entityObject.get("size").toString());
-            float x = Float.parseFloat(entityObject.getJSONObject("position").get("x").toString());
-            float y = Float.parseFloat(entityObject.getJSONObject("position").get("y").toString());
-            EntityBoop entity = new EntityBoop(size, x, y, world, id);
-            synchronized (renderQueue) {
-                renderQueue.put(entity.getId(), entity);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void drawOutOtherPlayer(JSONObject player) {
         try {
             String id = player.get("id").toString();
@@ -214,9 +206,11 @@ public class GameLogic {
             float x = Float.parseFloat(player.getJSONObject("position").get("x").toString());
             float y = Float.parseFloat(player.getJSONObject("position").get("y").toString());
             float speed = Float.parseFloat(player.get("speed").toString());
-            synchronized (renderQueue) {
-                //Gdx.app.log("BoopGame", renderQueue.toString());
+            //Gdx.app.log("BoopGame", renderQueue.toString());
+            try {
                 renderQueue.get(id).update(size, x, y, speed);
+            } catch (NullPointerException e) {
+
             }
         } catch (JSONException e) {
             //e.printStackTrace();
@@ -275,11 +269,18 @@ public class GameLogic {
                 updateQueue) {
             drawOutOtherPlayer(obj);
         }
-
         updateQueue.clear();
-        synchronized (renderQueue) {
-            updatePlayerPosition(delta);
+        for (String id :
+                removeQueue) {
+            removeEntity(id);
         }
+        removeQueue.clear();
+        for (JSONObject obj :
+                addQueue) {
+            addNewEntity(obj);
+        }
+        addQueue.clear();
+        updatePlayerPosition(delta);
         boolean actionInitiated = false;
         if (upPressed) {
             actionInitiated = true;
