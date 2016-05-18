@@ -5,6 +5,7 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.boopgame.gameobjects.BoopInterface;
+import com.boopgame.gameobjects.PlayerBoop;
 import com.boopgame.gamescreen.GameLogic;
 
 import io.socket.client.Socket;
@@ -26,17 +27,21 @@ public class GameContactListener implements ContactListener {
     public void beginContact(Contact contact) {
         BoopInterface boopA = (BoopInterface) contact.getFixtureA().getBody().getUserData();
         BoopInterface boopB = (BoopInterface) contact.getFixtureB().getBody().getUserData();
-        float radius = boopA.getRadius() + boopB.getRadius();
-        if (boopA.getRadius() > boopB.getRadius()) {
-            boopA.setRadius(radius);
-            contact.getFixtureA().getShape().setRadius(radius);
-            gameLogic.addItemToDelete(contact.getFixtureB().getBody());
+        float size = boopA.getSize() + boopB.getSize();
+        if (boopA.getSize() > boopB.getSize()) {
+            if (boopA instanceof PlayerBoop) {
+                boopA.setSize(size);
+                contact.getFixtureA().getShape().setRadius(size/2);
+                gameLogic.addItemToDelete(contact.getFixtureB().getBody());
+            }
         } else if (boopA.getRadius() == boopB.getRadius()){
 
         } else {
-            boopB.setRadius(radius);
-            contact.getFixtureB().getShape().setRadius(radius);
-            gameLogic.addItemToDelete(contact.getFixtureA().getBody());
+            if (boopB instanceof PlayerBoop) {
+                boopB.setSize(size);
+                contact.getFixtureB().getShape().setRadius(size/2);
+                gameLogic.addItemToDelete(contact.getFixtureA().getBody());
+            }
         }
     }
 

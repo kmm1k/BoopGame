@@ -47,4 +47,9 @@ public class CircleBoop extends EntityBoop {
     public Body getBody() {
         return body;
     }
+
+    @Override
+    public void setSize(float size) {
+        this.entitySize = size;
+    }
 }

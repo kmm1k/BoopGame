@@ -18,4 +18,5 @@ public interface BoopInterface {
     void update(float size, float x, float y, float speed);
     JSONObject getData();
     Body getBody();
+    void setSize(float size);
 }

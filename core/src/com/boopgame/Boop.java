@@ -63,7 +63,7 @@ public class Boop extends Game {
 
     private void makeConnection() {
 		try {
-			socket = IO.socket("http://localhost:8080");
+			socket = IO.socket("http://92.222.73.34:8080");
 			socket.connect();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();

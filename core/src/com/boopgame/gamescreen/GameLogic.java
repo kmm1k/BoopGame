@@ -45,6 +45,7 @@ public class GameLogic {
     private ArrayList<JSONObject> updateQueue;
     float updateTimer;
     private String id;
+    private String lobbyId;
     private float deleteTimer;
     private List<String> removeQueue;
     private List<JSONObject> addQueue;
@@ -85,7 +86,17 @@ public class GameLogic {
         try {
             playerData.put("name", "username");
             socket.emit("addPlayer", playerData);
-            socket.on("getPlayer", new Emitter.Listener() {
+            socket.on("getLobbyId", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        lobbyId = data.getString("lobbyId");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).on("getPlayer", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     JSONObject data = (JSONObject) args[0];
@@ -137,9 +148,12 @@ public class GameLogic {
                 public void call(Object... args) {
                     JSONObject data = (JSONObject) args[0];
                     try {
-                        String idData = data.getString("id");
-                        // when smb eats an entity, delete it from my game
-                        removeQueue.add(idData);
+                        String newLobbyId = data.getString("lobbyId");
+                        if (lobbyId.equals(newLobbyId)) {
+                            String idData = data.getString("id");
+                            // when smb eats an entity, delete it from my game
+                            removeQueue.add(idData);
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -165,12 +179,15 @@ public class GameLogic {
                 public void call(Object... args) {
                     JSONObject data = (JSONObject) args[0];
                     try {
-                        String otherPlayerData = data.getString("otherPlayer");
-                        JSONObject entityObject = new JSONObject(otherPlayerData);
-                        // when an entity is added add it to my game
-                        addQueue.add(entityObject);
-                        // when an entity is added add it to my game
-                        Gdx.app.log("BoopGame","add other entiuty");
+                        String newLobbyId = data.getString("lobbyId");
+                        if (lobbyId.equals(newLobbyId)){
+                            String otherPlayerData = data.getString("otherPlayer");
+                            JSONObject entityObject = new JSONObject(otherPlayerData);
+                            // when an entity is added add it to my game
+                            addQueue.add(entityObject);
+                            // when an entity is added add it to my game
+                            Gdx.app.log("BoopGame","add other entiuty");
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -261,7 +278,13 @@ public class GameLogic {
         updateTimer += delta;
         if (updateTimer > .05f) {
             updateTimer = 0f;
-            socket.emit("updatePlayer", playerBoop.getData());
+            JSONObject updateObject = playerBoop.getData();
+            try {
+                updateObject.put("lobbyId", lobbyId);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            socket.emit("updatePlayer", updateObject);
         }
         deleteTimer += delta;
         if (deleteTimer > .1f){
@@ -368,7 +391,7 @@ public class GameLogic {
     }
 
     public void stepWorld() {
-        world.step(1 / 60f, 0, 1);
+        world.step(1 / 30f, 0, 1);
     }
 
     public void addItemToDelete(Body body) {
@@ -378,13 +401,20 @@ public class GameLogic {
     private void deleteBodys() {
         for (Body body :
                 bodyDeleteList) {
-            BoopInterface boop = (BoopInterface) body.getUserData();
             synchronized (renderQueue)
             {
-                removeEntityFromServer(boop.getId());
-                renderQueue.remove(boop);
+                BoopInterface boop = (BoopInterface) body.getUserData();
+
+                //TODO: this is broken
+                try {
+                    removeEntityFromServer(boop.getId());
+                    renderQueue.remove(boop);
+                } catch (NullPointerException e) {
+
+                }
+
             }
-            boop.dispose();
+            //boop.dispose();
             world.destroyBody(body);
         }
         bodyDeleteList.clear();
@@ -394,6 +424,7 @@ public class GameLogic {
         JSONObject data = new JSONObject();
         try {
             data.put("id", boopId);
+            data.put("lobbyId", lobbyId);
         } catch (JSONException e) {
             e.printStackTrace();
         }

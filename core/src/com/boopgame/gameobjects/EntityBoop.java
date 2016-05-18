@@ -90,4 +90,9 @@ public class EntityBoop implements BoopInterface {
     public Body getBody() {
         return null;
     }
+
+    @Override
+    public void setSize(float size) {
+        this.entitySize = size;
+    }
 }

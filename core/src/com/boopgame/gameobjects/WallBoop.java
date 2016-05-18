@@ -33,6 +33,7 @@ public class WallBoop extends EntityBoop {
         PolygonShape wall = new PolygonShape();
 
         wall.setAsBox(width / 2, height / 2);
+        body.setUserData(this);
         body.createFixture(wall, 0.0f);
         body.setTransform(bodyDef.position, angle * MathUtils.degreesToRadians);
         wall.dispose();
