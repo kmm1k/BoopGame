@@ -30,17 +30,19 @@ public class GameContactListener implements ContactListener {
         float size = boopA.getSize() + boopB.getSize();
         if (boopA.getSize() > boopB.getSize()) {
             if (boopA instanceof PlayerBoop) {
-                boopA.setSize(size);
-                contact.getFixtureA().getShape().setRadius(size/2);
-                gameLogic.addItemToDelete(contact.getFixtureB().getBody());
+                //boopA.setSize(size);
+                //contact.getFixtureA().getShape().setRadius(size / 2);
+                gameLogic.addItemsToEat(boopA.getId(), boopB.getId());
+                gameLogic.addItemToDelete(boopB.getId());
             }
         } else if (boopA.getRadius() == boopB.getRadius()){
 
         } else {
             if (boopB instanceof PlayerBoop) {
-                boopB.setSize(size);
-                contact.getFixtureB().getShape().setRadius(size/2);
-                gameLogic.addItemToDelete(contact.getFixtureA().getBody());
+                //boopB.setSize(size);
+                //contact.getFixtureB().getShape().setRadius(size/2);
+                gameLogic.addItemsToEat(boopB.getId(), boopA.getId());
+                gameLogic.addItemToDelete(boopA.getId());
             }
         }
     }

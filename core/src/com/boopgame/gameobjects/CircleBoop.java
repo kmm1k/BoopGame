@@ -51,5 +51,6 @@ public class CircleBoop extends EntityBoop {
     @Override
     public void setSize(float size) {
         this.entitySize = size;
+        body.getFixtureList().get(0).getShape().setRadius(size/2);
     }
 }

@@ -51,5 +51,8 @@ public class WallBoop extends EntityBoop {
         return height;
     }
 
-
+    @Override
+    public Body getBody() {
+        return body;
+    }
 }

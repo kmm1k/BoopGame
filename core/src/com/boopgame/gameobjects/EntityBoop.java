@@ -91,6 +91,7 @@ public class EntityBoop implements BoopInterface {
         return null;
     }
 
+
     @Override
     public void setSize(float size) {
         this.entitySize = size;
