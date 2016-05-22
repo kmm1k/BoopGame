@@ -2,7 +2,6 @@ package com.boopgame.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -13,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.boopgame.Boop;
 import com.boopgame.helpers.AssetLoader;
+import com.boopgame.menuscreen.MenuRenderer;
 
 import io.socket.client.Socket;
 
@@ -30,6 +30,7 @@ public class MenuScreen extends AbstractScreen {
     private final String id;
     private TextButton buttonExit;
     private TextButton buttonPlay;
+    private final MenuRenderer menuRenderer;
 
     public MenuScreen(Boop boop, Socket socket, String id) {
         super();
@@ -43,6 +44,7 @@ public class MenuScreen extends AbstractScreen {
         stage = new Stage(viewport);
         Gdx.input.setInputProcessor(stage);
         createUITable();
+        menuRenderer = new MenuRenderer(stage);
     }
 
     private void createUITable() {
@@ -95,10 +97,7 @@ public class MenuScreen extends AbstractScreen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(119 / 255.0f, 202/ 255.0f, 230/ 255.0f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.act(delta);
-        stage.draw();
+        menuRenderer.render(delta);
     }
 
     @Override
@@ -124,6 +123,6 @@ public class MenuScreen extends AbstractScreen {
 
     @Override
     public void dispose() {
-
+        //stage.dispose();
     }
 }

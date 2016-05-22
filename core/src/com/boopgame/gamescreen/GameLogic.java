@@ -2,8 +2,8 @@ package com.boopgame.gamescreen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
+import com.boopgame.Boop;
 import com.boopgame.gameobjects.BoopInterface;
 import com.boopgame.gameobjects.PlayerBoop;
 import com.boopgame.gameobjects.WallBoop;
@@ -27,10 +27,12 @@ import io.socket.emitter.Emitter;
 public class GameLogic {
 
     private final ArrayList<String[]> eatQueue;
+    private final Boop boop;
     private PlayerBoop playerBoop;
     private final Socket socket;
 
     private boolean gameOver;
+    private boolean won;
     private boolean rightPressed;
     private boolean leftPressed;
     private boolean downPressed;
@@ -40,19 +42,19 @@ public class GameLogic {
     private int screenWidth;
     private int screenHeight;
     private final World world;
-    private final ArrayList<Body> bodyDeleteList;
     private boolean connectionMade;
     private HashMap<String, BoopInterface> renderQueue;
     private ArrayList<JSONObject> updateQueue;
     float updateTimer;
     private String id;
     private String lobbyId;
-    private float deleteTimer;
     private List<String> removeQueue;
     private List<JSONObject> addQueue;
     private final ServerObjectRemover serverObjectRemover;
+    private String enemyId;
 
-    public GameLogic(int width, int height, Socket socket) {
+    public GameLogic(int width, int height, Socket socket, Boop boop) {
+        this.boop = boop;
         connectionMade = false;
         this.socket = socket;
         screenWidth = width;
@@ -65,7 +67,6 @@ public class GameLogic {
         removeQueue = new ArrayList<String>();
         eatQueue = new ArrayList<String[]>();
         addQueue = new ArrayList<JSONObject>();
-
         serverObjectRemover = new ServerObjectRemover(socket);
         SocketIOConnection(socket);
 
@@ -73,19 +74,19 @@ public class GameLogic {
 
         GameContactListener contactListener = new GameContactListener(this);
         world.setContactListener(contactListener);
-        bodyDeleteList = new ArrayList<Body>();
     }
+
 
     private void initVariables() {
         touchPosition = new Vector2(0, 0);
         gameOver = false;
+        won = false;
         upPressed = false;
         downPressed = false;
         leftPressed = false;
         rightPressed = false;
         touchDown = false;
         updateTimer = 0;
-        deleteTimer = 0;
     }
 
     private void SocketIOConnection(Socket socket) {
@@ -175,13 +176,16 @@ public class GameLogic {
                     JSONObject data = (JSONObject) args[0];
                     try {
                         String newLobbyId = data.getString("lobbyId");
+                        float speed = Float.parseFloat(data.getString("speed"));
                         if (lobbyId.equals(newLobbyId)){
                             String otherPlayerData = data.getString("otherPlayer");
+                            renderQueue.get(id).setSpeed(speed);
                             JSONObject entityObject = new JSONObject(otherPlayerData);
+                            enemyId = entityObject.get("id").toString();
                             // when an entity is added add it to my game
                             addQueue.add(entityObject);
                             // when an entity is added add it to my game
-                            Gdx.app.log("BoopGame","add other entiuty");
+                            Gdx.app.log("BoopGame","add other entity");
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -258,6 +262,7 @@ public class GameLogic {
             float y = Float.parseFloat(jsonObject.getJSONObject("position").get("y").toString());
             String name = jsonObject.get("name").toString();
             float speed = Float.parseFloat(jsonObject.get("speed").toString());
+            Gdx.app.log("BoopGameD", "speed: "+speed);
             if (playerBoop == null){
                 this.id = id;
                 playerBoop = new PlayerBoop(size, x, y, world, id, speed, name);
@@ -291,6 +296,10 @@ public class GameLogic {
 
     public void update(float delta) {
 
+        if (gameOver) {
+            boop.gameOver(won);
+        }
+
         if (!connectionMade)
             return;
         //updateQueue
@@ -315,6 +324,14 @@ public class GameLogic {
                 removeQueue) {
             serverObjectRemover.addItemToRemove(id);
             removeEntity(id);
+            if (id.equals(this.id)){
+                gameOver = true;
+                won = false;
+            }
+            if (id.equals(this.enemyId)){
+                gameOver = true;
+                won = true;
+            }
         }
         removeQueue.clear();
 

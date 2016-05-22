@@ -18,7 +18,7 @@ public class GameScreen extends AbstractScreen {
     public GameScreen(Boop boop, Socket socket, String id) {
         super();
         this.id = id;
-        gameLogic = new GameLogic((int)screenWidth, (int)screenHeight, socket);
+        gameLogic = new GameLogic((int)screenWidth, (int)screenHeight, socket, boop);
         gameRenderer = new GameRenderer(gameWidth, gameHeight, cam);
     }
 

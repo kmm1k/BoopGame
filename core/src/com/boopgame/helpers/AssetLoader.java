@@ -42,7 +42,7 @@ public class AssetLoader {
     }
 
     private static void createFonts() {
-        generateDigitalFonts();
+        generateBigFonts();
         generateRegularFonts();
 
     }
@@ -58,7 +58,7 @@ public class AssetLoader {
         generator.dispose();
     }
 
-    private static void generateDigitalFonts() {
+    private static void generateBigFonts() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/triple_dot_digital-7.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 20;

@@ -9,7 +9,7 @@ public class PlayerBoop extends CircleBoop {
 
     public PlayerBoop(float entitySize, float x, float y, World world, String id, float speed, String name) {
         super(entitySize, x, y, world, id);
-        entitySpeed = speed;
+        this.entitySpeed = speed;
     }
 
     public void moveUp() {
@@ -35,7 +35,6 @@ public class PlayerBoop extends CircleBoop {
     public void movePlayerWithTouch(float speedX, float speedY) {
         body.setLinearVelocity(speedX * entitySpeed, speedY * entitySpeed);
         entityPosition.set(body.getPosition().x, body.getPosition().y);
-        //playerPosition.set(playerPosition.x + speedX * INITIAL_PLAYER_SPEED, playerPosition.y + speedY * INITIAL_PLAYER_SPEED);
     }
 
     public void stopMoving() {
