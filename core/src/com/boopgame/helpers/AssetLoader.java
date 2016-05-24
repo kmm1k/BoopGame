@@ -17,7 +17,7 @@ public class AssetLoader {
     private static Skin skin;
 
     private static TextureAtlas atlas;
-    private static BitmapFont scoreFont;
+    public static BitmapFont scoreFont;
     private static BitmapFont buttonFont;
     private static BitmapFont labelFont;
 
@@ -64,7 +64,7 @@ public class AssetLoader {
         parameter.size = 20;
         parameter.minFilter = Texture.TextureFilter.Nearest;
         parameter.magFilter = Texture.TextureFilter.Nearest;
-        parameter.flip = true;
+        parameter.flip = false;
         scoreFont = generator.generateFont(parameter);
         parameter.flip = false;
         parameter.size = 20;

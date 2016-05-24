@@ -78,7 +78,8 @@ public class GameOverScreen extends AbstractScreen {
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                boop.setScreen(new GameScreen(boop, socket, id));
+                boop.dispose();
+                boop.create();
                 stage.dispose();
                 dispose();
             }

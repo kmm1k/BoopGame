@@ -52,6 +52,7 @@ public class GameLogic {
     private List<JSONObject> addQueue;
     private final ServerObjectRemover serverObjectRemover;
     private String enemyId;
+    private boolean gameStarted;
 
     public GameLogic(int width, int height, Socket socket, Boop boop) {
         this.boop = boop;
@@ -71,7 +72,6 @@ public class GameLogic {
         SocketIOConnection(socket);
 
 
-
         GameContactListener contactListener = new GameContactListener(this);
         world.setContactListener(contactListener);
     }
@@ -86,6 +86,7 @@ public class GameLogic {
         leftPressed = false;
         rightPressed = false;
         touchDown = false;
+        gameStarted = false;
         updateTimer = 0;
     }
 
@@ -162,7 +163,7 @@ public class GameLogic {
                         String mapString = data.getString("map");
                         JSONArray mapData = new JSONArray(mapString);
                         for (int i = 0; i < mapData.length(); i++) {
-                                addNewEntity((JSONObject) mapData.get(i));
+                            addNewEntity((JSONObject) mapData.get(i));
                         }
                         // when an entity is added add it to my game
                         //Gdx.app.log("BoopGame", id.toString());
@@ -177,15 +178,31 @@ public class GameLogic {
                     try {
                         String newLobbyId = data.getString("lobbyId");
                         float speed = Float.parseFloat(data.getString("speed"));
-                        if (lobbyId.equals(newLobbyId)){
+                        if (lobbyId.equals(newLobbyId)) {
                             String otherPlayerData = data.getString("otherPlayer");
                             renderQueue.get(id).setSpeed(speed);
+                            gameStarted = true;
                             JSONObject entityObject = new JSONObject(otherPlayerData);
                             enemyId = entityObject.get("id").toString();
                             // when an entity is added add it to my game
                             addQueue.add(entityObject);
                             // when an entity is added add it to my game
-                            Gdx.app.log("BoopGame","add other entity");
+                            Gdx.app.log("BoopGame", "add other entity");
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).on("gameOver", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        lobbyId = data.getString("lobbyId");
+                        if (lobbyId.equals(lobbyId)) {
+                            gameOver = true;
+                            won = false;
+
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -210,7 +227,11 @@ public class GameLogic {
             speed = Float.parseFloat(JSONentity.get("speed").toString());
             BoopInterface entity;
 
-            if (type.equals("circle")){
+            if (type.equals("circle")) {
+                if (!name.equals("")) {
+                    enemyId = id;
+                    gameStarted = true;
+                }
                 entity = new PlayerBoop(size, x, y, world, id, speed, name);
             } else {
                 float angle = Float.parseFloat(JSONentity.get("angle").toString());
@@ -246,7 +267,7 @@ public class GameLogic {
     }
 
     private void removeEntity(String idData) {
-        synchronized (renderQueue){
+        synchronized (renderQueue) {
             BoopInterface removableBoop = renderQueue.remove(idData);
             world.destroyBody(removableBoop.getBody());
         }
@@ -262,8 +283,8 @@ public class GameLogic {
             float y = Float.parseFloat(jsonObject.getJSONObject("position").get("y").toString());
             String name = jsonObject.get("name").toString();
             float speed = Float.parseFloat(jsonObject.get("speed").toString());
-            Gdx.app.log("BoopGameD", "speed: "+speed);
-            if (playerBoop == null){
+            Gdx.app.log("BoopGameD", "speed: " + speed);
+            if (playerBoop == null) {
                 this.id = id;
                 playerBoop = new PlayerBoop(size, x, y, world, id, speed, name);
                 synchronized (renderQueue) {
@@ -277,7 +298,7 @@ public class GameLogic {
 
     private void updatePlayerPosition(float delta) {
         updateTimer += delta;
-        if (updateTimer > .05f) {
+        if (updateTimer > .02f) {
             updateTimer = 0f;
             JSONObject updateObject = playerBoop.getData();
             try {
@@ -324,13 +345,13 @@ public class GameLogic {
                 removeQueue) {
             serverObjectRemover.addItemToRemove(id);
             removeEntity(id);
-            if (id.equals(this.id)){
+            if (id.equals(this.id)) {
                 gameOver = true;
                 won = false;
-            }
-            if (id.equals(this.enemyId)){
+            } else if (id.equals(this.enemyId)) {
                 gameOver = true;
                 won = true;
+                sendGameOverMessage();
             }
         }
         removeQueue.clear();
@@ -374,6 +395,16 @@ public class GameLogic {
 
     }
 
+    private void sendGameOverMessage() {
+        JSONObject updateObject = new JSONObject();
+        try {
+            updateObject.put("lobbyId", lobbyId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        socket.emit("gameOver", updateObject);
+    }
+
     private void calculatePlayerMovementFromTouch() {
         float speedX = ((screenWidth / 2 - touchPosition.x) * -1) / (screenWidth / 2);
         float speedY = ((screenHeight / 2 - touchPosition.y)) / (screenHeight / 2);
@@ -385,7 +416,7 @@ public class GameLogic {
     }
 
     public HashMap<String, BoopInterface> getGameEntities() {
-        synchronized (renderQueue){
+        synchronized (renderQueue) {
             return renderQueue;
         }
 
@@ -425,7 +456,7 @@ public class GameLogic {
     }
 
     public void stepWorld() {
-        world.step(1 / 30f, 0, 1);
+        world.step(1 / 60f, 2, 4);
     }
 
     public void addItemToDelete(String boopId) {
@@ -446,5 +477,9 @@ public class GameLogic {
 
     public void addItemsToEat(String eater, String dedBoop) {
         eatQueue.add(new String[]{eater, dedBoop});
+    }
+
+    public boolean getGameStarted() {
+        return gameStarted;
     }
 }

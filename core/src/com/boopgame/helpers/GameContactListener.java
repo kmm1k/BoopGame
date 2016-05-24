@@ -1,5 +1,6 @@
 package com.boopgame.helpers;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
@@ -27,15 +28,18 @@ public class GameContactListener implements ContactListener {
     public void beginContact(Contact contact) {
         BoopInterface boopA = (BoopInterface) contact.getFixtureA().getBody().getUserData();
         BoopInterface boopB = (BoopInterface) contact.getFixtureB().getBody().getUserData();
-        float size = boopA.getSize() + boopB.getSize();
-        if (boopA.getSize() > boopB.getSize()) {
+        Gdx.app.log("BoopGameD", "a"+boopA.getSize()+""+boopB.getSize());
+        float sizeA = boopA.getSize();
+        float sizeB = boopB.getSize();
+        if (sizeA > sizeB) {
             if (boopA instanceof PlayerBoop) {
                 //boopA.setSize(size);
                 //contact.getFixtureA().getShape().setRadius(size / 2);
                 gameLogic.addItemsToEat(boopA.getId(), boopB.getId());
                 gameLogic.addItemToDelete(boopB.getId());
             }
-        } else if (boopA.getRadius() == boopB.getRadius()){
+        } else if (sizeA == sizeB){
+            Gdx.app.log("BoopGameD", "lolol a"+boopA.getSize()+""+boopB.getSize());
 
         } else {
             if (boopB instanceof PlayerBoop) {

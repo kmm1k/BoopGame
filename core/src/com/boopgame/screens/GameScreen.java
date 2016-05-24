@@ -33,7 +33,7 @@ public class GameScreen extends AbstractScreen {
             if (delta > .1f)
                 delta = .1f;
             gameLogic.update(delta);
-            gameRenderer.render(delta, gameLogic.getGameEntities(), gameLogic.getWorld(), gameLogic.getId());
+            gameRenderer.render(delta, gameLogic.getGameEntities(), gameLogic.getWorld(), gameLogic.getId(), gameLogic.getGameStarted());
             gameLogic.stepWorld();
         }
     }

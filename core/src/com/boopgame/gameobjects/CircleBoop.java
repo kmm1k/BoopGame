@@ -41,6 +41,7 @@ public class CircleBoop extends EntityBoop {
         this.entityPosition.y = y;
         this.entitySpeed = speed;
         body.setTransform(entityPosition, body.getAngle());
+        setSize(size);
     }
 
     @Override

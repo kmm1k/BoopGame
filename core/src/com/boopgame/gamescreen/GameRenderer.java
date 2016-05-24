@@ -3,12 +3,14 @@ package com.boopgame.gamescreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.boopgame.gameobjects.BoopInterface;
 import com.boopgame.gameobjects.PlayerBoop;
 import com.boopgame.gameobjects.WallBoop;
+import com.boopgame.helpers.AssetLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,20 +24,30 @@ public class GameRenderer {
     private ShapeRenderer shapeRenderer;
     private float gameWidth;
     private float gameHeight;
+    private SpriteBatch batcher;
 
     public GameRenderer(float gameWidth, float gameHeight, OrthographicCamera cam) {
         //Gdx.app.log("BoopGame", "initgamerender");
         this.cam = cam;
         this.shapeRenderer = new ShapeRenderer();
         debugRenderer = new Box2DDebugRenderer();
+        batcher = new SpriteBatch();
     }
 
     public void render(float delta, HashMap<String, BoopInterface> renderQueue, World world,
-                       String id) {
+                       String id, boolean gameStarted) {
         ClearScreenAndSetBackground();
         renderShapes(renderQueue, id);
         debugRenderer.render(world, cam.combined);
-        //drawBox(new WallBoop(200, -200, -200, world, "asd", 0, 200, 300));
+        if (!gameStarted)
+        renderMessage();
+    }
+
+    private void renderMessage() {
+        batcher.begin();
+        batcher.enableBlending();
+        AssetLoader.scoreFont.draw(batcher, "waiting for another player", 50, 200);
+        batcher.end();
     }
 
     private void renderShapes(HashMap<String, BoopInterface> renderQueue, String id) {
